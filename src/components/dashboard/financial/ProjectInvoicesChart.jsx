@@ -1,20 +1,23 @@
 "use client";
 
+import { useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 import { GRID_COLOR, TICK, cursorPointerOnHover } from "@/lib/chartSetup";
-import { usd, usdK } from "@/lib/format";
+import { usd, usdK, statusMetaFor, orderStatuses } from "@/lib/format";
 import { SkeletonHBars } from "../Skeleton";
 
-const STATUS_DATASETS = [
-  { key: "Completed", label: "Completed", color: "#2bd49b" },
-  { key: "Overdue", label: "Overdue", color: "#ef4d63" },
-  { key: "Scheduled", label: "Scheduled", color: "#4a90e2" },
-];
-
 export default function ProjectInvoicesChart({ rows, loading = false, onSelect }) {
+  /* Bar segments are whatever statuses actually appear across the filtered
+     rows — not a fixed list — so a status with real $ always renders, and
+     one nobody has anymore just stops showing up on its own. */
+  const statusDatasets = useMemo(() => {
+    const statuses = orderStatuses(rows.flatMap((r) => Object.keys(r.byStatus)));
+    return statuses.map((key) => ({ key, ...statusMetaFor(key) }));
+  }, [rows]);
+
   const data = {
     labels: rows.map((r) => r.project),
-    datasets: STATUS_DATASETS.map((s) => ({
+    datasets: statusDatasets.map((s) => ({
       label: s.label,
       data: rows.map((r) => r.byStatus[s.key] || 0),
       backgroundColor: s.color,
@@ -29,7 +32,7 @@ export default function ProjectInvoicesChart({ rows, loading = false, onSelect }
     onClick: (event, elements) => {
       if (!elements.length || !onSelect) return;
       const { datasetIndex, index } = elements[0];
-      const status = STATUS_DATASETS[datasetIndex];
+      const status = statusDatasets[datasetIndex];
       onSelect(data.datasets[datasetIndex]._rows[index], `${rows[index].project} — ${status.label}`);
     },
     plugins: {

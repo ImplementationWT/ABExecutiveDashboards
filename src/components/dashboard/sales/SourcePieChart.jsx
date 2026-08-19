@@ -1,7 +1,7 @@
 "use client";
 
 import { Pie } from "react-chartjs-2";
-import { SOURCE_COLORS } from "@/lib/format";
+import { SOURCE_COLORS, colorFor } from "@/lib/format";
 import { SkeletonDonut } from "../Skeleton";
 
 export default function SourcePieChart({ title, topNote, bottomNote, rows, addr, loading = false }) {
@@ -12,7 +12,7 @@ export default function SourcePieChart({ title, topNote, bottomNote, rows, addr,
     datasets: [
       {
         data: rows.map((r) => r[1]),
-        backgroundColor: rows.map((r) => SOURCE_COLORS[r[0]] || "#888"),
+        backgroundColor: rows.map((r) => colorFor(r[0], SOURCE_COLORS)),
         borderColor: "#1b2236",
         borderWidth: 2,
       },

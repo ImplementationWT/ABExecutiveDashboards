@@ -1,4 +1,4 @@
-import { PERSON_COLORS, STAGE_COLORS, initials, shortStage } from "@/lib/format";
+import { PERSON_COLORS, STAGE_COLORS, colorFor, initials, shortStage } from "@/lib/format";
 import { SkeletonTableRows } from "../Skeleton";
 
 export default function InProgressTable({ rows, loading = false }) {

@@ -1,7 +1,15 @@
 import { monthRange, toUTCDate } from "./dates";
+import { orderStatuses } from "./format";
 
 export const AGING_BUCKETS = ["0-30", "31-60", "61-90", "90+"];
 const NO_DUE_DATE_BUCKET = "No due date";
+
+/* Every status actually present in the invoices — the status filter derives
+   its options from this, not from a fixed list, so a status added/renamed/
+   removed on the monday.com board shows up correctly without a code change. */
+export function distinctStatuses(invoices) {
+  return orderStatuses(invoices.map((r) => r.status));
+}
 
 /* Derives the [minMonth, maxMonth] bounds and the full ordered month list
    from whatever invoice dates are actually present. Computed at runtime

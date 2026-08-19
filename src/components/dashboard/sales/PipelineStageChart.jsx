@@ -2,7 +2,7 @@
 
 import { Bar } from "react-chartjs-2";
 import { GRID_COLOR, TICK, cursorPointerOnHover } from "@/lib/chartSetup";
-import { usd, PIPELINE_STAGE_COLORS, PIPELINE_STAGE_ORDER } from "@/lib/format";
+import { usd, PIPELINE_STAGE_COLORS, PIPELINE_STAGE_ORDER, colorFor } from "@/lib/format";
 import { SkeletonHBars } from "../Skeleton";
 
 const stageRank = (name) => {
@@ -25,7 +25,7 @@ export default function PipelineStageChart({ stages, loading = false, onSelect }
     datasets: [
       {
         data: sorted.map((s) => s.count),
-        backgroundColor: labels.map((l) => PIPELINE_STAGE_COLORS[l] || "#8b95b2"),
+        backgroundColor: labels.map((l) => colorFor(l, PIPELINE_STAGE_COLORS)),
         borderRadius: 6,
       },
     ],

@@ -2,7 +2,7 @@
 
 import { Bar } from "react-chartjs-2";
 import { GRID_COLOR, TICK } from "@/lib/chartSetup";
-import { PERSON_COLORS } from "@/lib/format";
+import { PERSON_COLORS, colorFor } from "@/lib/format";
 import { SkeletonBars } from "../Skeleton";
 
 export default function WeeklyWorkloadChart({ title, rangeLabel, days, records, loading = false }) {
@@ -19,7 +19,7 @@ export default function WeeklyWorkloadChart({ title, rangeLabel, days, records, 
     datasets: owners.map((o) => ({
       label: o,
       data: byOwner[o].counts,
-      backgroundColor: PERSON_COLORS[o],
+      backgroundColor: colorFor(o, PERSON_COLORS),
       borderRadius: 3,
       stack: "s",
       _tasks: byOwner[o].tasks,

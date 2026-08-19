@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { STATUS_META, BILLED_STATUSES } from "@/lib/format";
+import { BILLED_STATUSES, statusMetaFor } from "@/lib/format";
 import { monthLabel } from "@/lib/dates";
-import { computeMonthRange, primaryMonth, bucketAccountsReceivableAging } from "@/lib/invoices";
+import { computeMonthRange, primaryMonth, bucketAccountsReceivableAging, distinctStatuses } from "@/lib/invoices";
 import { useMultiSelect } from "../filters/useMultiSelect";
 import MultiSelectDropdown from "../filters/MultiSelectDropdown";
 import KpiCards from "./KpiCards";
@@ -41,10 +41,11 @@ export default function FinancialPane({ data, loading = false, error = null }) {
 function FinancialPaneContent({ data, loading }) {
   const INVOICES = data.invoices;
   const PROJECTS = useMemo(() => [...new Set(INVOICES.map((r) => r.project))].sort(), [INVOICES]);
+  const STATUSES = useMemo(() => distinctStatuses(INVOICES), [INVOICES]);
   const { minMonth: MIN_MONTH, maxMonth: MAX_MONTH, monthsOrdered: MONTHS_ORDERED } = useMemo(() => computeMonthRange(INVOICES), [INVOICES]);
 
   const projectFilter = useMultiSelect(PROJECTS, "All projects");
-  const statusFilter = useMultiSelect(BILLED_STATUSES, "All statuses");
+  const statusFilter = useMultiSelect(STATUSES, "All statuses");
   const [fromMonth, setFromMonth] = useState(MIN_MONTH);
   const [toMonth, setToMonth] = useState(MAX_MONTH);
   const [selection, setSelection] = useState(null);
@@ -78,12 +79,12 @@ function FinancialPaneContent({ data, loading }) {
 
   const aging = useMemo(() => bucketAccountsReceivableAging(allFiltered), [allFiltered]);
 
-  /* Per-project stacked totals: Scheduled always counts, other statuses only if selected in the filter.
+  /* Per-project stacked totals across every filterable status (Completed/Sent/Overdue/Scheduled).
      statusRows carries the actual invoice rows per status so chart clicks can open the full detail. */
   const projectRows = useMemo(() => {
     const byProject = {};
     allFiltered.forEach((r) => {
-      if (!statusFilter.selected.has(r.status) && r.status !== "Scheduled") return;
+      if (!statusFilter.selected.has(r.status)) return;
       const bucket = (byProject[r.project] = byProject[r.project] || { byStatus: {}, statusRows: {} });
       bucket.byStatus[r.status] = (bucket.byStatus[r.status] || 0) + r.invoiced;
       (bucket.statusRows[r.status] = bucket.statusRows[r.status] || []).push(r);
@@ -137,8 +138,8 @@ function FinancialPaneContent({ data, loading }) {
         />
         <MultiSelectDropdown
           label="Status"
-          items={BILLED_STATUSES}
-          itemLabel={(k) => STATUS_META[k].label}
+          items={STATUSES}
+          itemLabel={(k) => statusMetaFor(k).label}
           selected={statusFilter.selected}
           summary={statusFilter.label}
           onToggleAll={statusFilter.toggleAll}
