@@ -1,7 +1,6 @@
 import { MongoClient } from "mongodb";
 
 const dbName = process.env.MONGODB_DB || "executive-dashboards";
-const isDev = process.env.NODE_ENV === "development";
 
 function createClientPromise() {
   const uri = process.env.MONGODB_URI;
@@ -11,17 +10,15 @@ function createClientPromise() {
   return new MongoClient(uri).connect();
 }
 
-/* Reuse the client across Fast Refresh reloads in dev so we don't open a new
-   connection pool on every file save. If a connection attempt fails (e.g. bad
+/* Reuse a single client (and its connection pool) across every request in
+   this process — including Fast Refresh reloads in dev — instead of opening
+   a new pool on every call. Cached on `global` rather than a module-level
+   variable so it survives Fast Refresh, which re-evaluates this module on
+   every file save in dev. If a connection attempt fails (e.g. bad
    credentials), the cache is cleared so the next call retries against
    whatever MONGODB_URI currently holds, instead of replaying the same
    rejected promise forever. */
 export async function getDb() {
-  if (!isDev) {
-    const client = await createClientPromise();
-    return client.db(dbName);
-  }
-
   if (!global._mongoClientPromise) {
     global._mongoClientPromise = createClientPromise();
   }
